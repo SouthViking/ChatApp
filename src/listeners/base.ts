@@ -1,7 +1,8 @@
 // Definition of basic listeners.
 
-import { getConnectionAddress } from '../utils';
-import { OnCloseListener, OnErrorListener, OnMessageListener } from '../types';
+import { onUserConnectionHandler } from '../handlers/messages';
+import { MessageType, OnCloseListener, OnErrorListener, OnMessageListener } from '../types';
+import { buildMessageBufferFromJson, convertTextToJson, getConnectionAddress, isValidMessageObject } from '../utils';
 
 export const onCloseListener: OnCloseListener = (webSocketServer, webSocket, code, reason, request) => {
     const connectionAddress = getConnectionAddress(request);
@@ -16,6 +17,34 @@ export const onMessageListener: OnMessageListener = (webSocketServer, webSocket,
     const connectionAddress = getConnectionAddress(request);
     console.log(`Data received from client ${connectionAddress}: ${data} (${isBinary ? 'binary' : 'not binary'}).`);
 
-    // TODO: Handle base message logic and separate the flow regarding the specific message.
-    webSocket.send(`Data received! (${data})`);
+    const convertedData = convertTextToJson(data.toString());
+    if (convertedData == null) {
+        const errorMessage = buildMessageBufferFromJson({
+            error: 'Message must be a valid JSON object.',
+            timestamp: Date.now(),
+            type: MessageType.ERROR,
+        });
+
+        webSocket.send(errorMessage);
+        return;
+    }
+
+    if (!isValidMessageObject(convertedData)) {
+        const errorMessage = buildMessageBufferFromJson({
+            error: 'Message format is not valid.',
+            timestamp: Date.now(),
+            type: MessageType.ERROR,
+        });
+
+        webSocket.send(errorMessage);
+        return;
+    }
+
+    switch (convertedData.type) {
+        case MessageType.CONNECTION:
+            onUserConnectionHandler(webSocketServer, webSocket, request, convertedData);
+            break;
+        case MessageType.TEXT:
+            break;
+    }
 };

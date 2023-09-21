@@ -3,6 +3,7 @@ export enum MessageType {
     CONNECTION,
     TEXT,
     ERROR,
+    NOTIFICATION,
 }
 
 export interface BaseMessage {
@@ -15,4 +16,9 @@ export interface TextMessage extends BaseMessage {
     username: string;
     text: string;
     sentAt: number;
+}
+
+export interface ConnectionMessage extends BaseMessage {
+    type: MessageType.CONNECTION;
+    username: string;
 }

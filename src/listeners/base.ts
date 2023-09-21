@@ -1,8 +1,8 @@
 // Definition of basic listeners.
 
-import { onUserTextHandler } from '../handlers/messages';
+import { onUserConnectionHandler, onUserTextHandler } from '../handlers/messages';
 import { MessageType, OnCloseListener, OnErrorListener, OnMessageListener } from '../types';
-import { buildMessageBufferFromJson, convertTextToJson, getConnectionAddress, isValidMessageObject, isValidTextMessageObject } from '../utils';
+import { buildJsonStringMessage, convertTextToJson, getConnectionAddress, isValidConnectionMessageObject, isValidMessageObject, isValidTextMessageObject } from '../utils';
 
 export const onCloseListener: OnCloseListener = (webSocketServer, webSocket, code, reason, request) => {
     const connectionAddress = getConnectionAddress(request);
@@ -19,7 +19,7 @@ export const onMessageListener: OnMessageListener = (webSocketServer, webSocket,
 
     const convertedData = convertTextToJson(data.toString());
     if (convertedData == null) {
-        const errorMessage = buildMessageBufferFromJson({
+        const errorMessage = buildJsonStringMessage({
             error: 'Message must be a valid JSON object.',
             timestamp: Date.now(),
             type: MessageType.ERROR,
@@ -30,19 +30,23 @@ export const onMessageListener: OnMessageListener = (webSocketServer, webSocket,
     }
 
     if (!isValidMessageObject(convertedData)) {
-        const errorMessage = buildMessageBufferFromJson({
+        const errorMessage = buildJsonStringMessage({
             error: 'Message format is not valid.',
             timestamp: Date.now(),
             type: MessageType.ERROR,
         });
 
-        webSocket.send(errorMessage);
+        webSocket.send(JSON.stringify({
+            error: 'Message format is not valid.',
+            timestamp: Date.now(),
+            type: MessageType.ERROR,
+        }));
         return;
     }
 
     if (convertedData.type === MessageType.TEXT) {
         if (!isValidTextMessageObject(convertedData)) {
-            const errorMessage = buildMessageBufferFromJson({
+            const errorMessage = buildJsonStringMessage({
                 error: 'Text message is not valid.',
                 timestamp: Date.now(),
                 type: MessageType.ERROR,
@@ -53,5 +57,19 @@ export const onMessageListener: OnMessageListener = (webSocketServer, webSocket,
         }
 
         onUserTextHandler(webSocketServer, webSocket, request, convertedData);
+    
+    } else if (convertedData.type === MessageType.CONNECTION) {
+        if (!isValidConnectionMessageObject(convertedData)) {
+            const errorMessage = buildJsonStringMessage({
+                error: 'Connection message is not valid.',
+                timestamp: Date.now(),
+                type: MessageType.ERROR,
+            });
+    
+            webSocket.send(errorMessage);
+            return;
+        }
+
+        onUserConnectionHandler(webSocketServer, webSocket, request, convertedData);
     }
 };

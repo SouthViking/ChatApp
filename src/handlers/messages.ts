@@ -1,12 +1,16 @@
-import { MessageType, TextMessage } from "../types";
+import { ConnectionMessage, MessageType, TextMessage } from "../types";
 import { MessageHandler } from "../types/handlers";
-import { buildMessageBufferFromJson, sendBroadcastMessage } from "../utils";
+import { buildJsonStringMessage, sendBroadcastMessage } from "../utils";
 
-export const onUserConnectionHandler: MessageHandler<{}> = (webSocketServer, webSocket, request, data) => {
+export const onUserConnectionHandler: MessageHandler<ConnectionMessage> = (webSocketServer, webSocket, request, data) => {
+    sendBroadcastMessage(webSocketServer, webSocket, buildJsonStringMessage({
+        type: MessageType.NOTIFICATION,
+        text: `${data.username} has joined the chat room!`,
+    }));
 };
 
 export const onUserTextHandler: MessageHandler<TextMessage> = (webSocketServer, webSocket, request, data) => {
-    sendBroadcastMessage(webSocketServer, webSocket, buildMessageBufferFromJson({
+    sendBroadcastMessage(webSocketServer, webSocket, buildJsonStringMessage({
         type: MessageType.TEXT,
         from: data.username,
         sentAt: data.sentAt,

@@ -1,5 +1,6 @@
+import WebSocket from 'ws';
 import { IncomingMessage } from 'http';
-import { BaseMessage, MessageType } from '../types';
+import { BaseMessage, MessageType, TextMessage } from '../types';
 
 export const getConnectionAddress = (request: IncomingMessage, isProductionEnv: boolean = false): string => {  
     if (isProductionEnv) {
@@ -39,6 +40,29 @@ export const isValidMessageObject = (object: Record<string, any>): object is Bas
     return true;
 };
 
+export const isValidTextMessageObject = (object: Record<string, any>): object is TextMessage => {
+    if (object.username === undefined || typeof object.username !== 'string') {
+        return false;
+    }
+    if (object.text === undefined || typeof object.text !== 'string') {
+        return false;
+    }
+
+    if (object.sentAt === undefined || typeof object.sentAt !== 'number') {
+        return false;
+    }
+
+    return true;
+};
+
 export const buildMessageBufferFromJson = (data: Record<string, any>) => {
     return Buffer.from(JSON.stringify(data));
+};
+
+export const sendBroadcastMessage = (webSocketServer: WebSocket.Server, webSocket: WebSocket, message: Buffer) => {
+    webSocketServer.clients.forEach((client) => {
+        if (client !== webSocket && client.readyState === WebSocket.OPEN) {
+            client.send(message);
+        }
+    });
 };

@@ -1,8 +1,8 @@
 // Definition of basic listeners.
 
-import { onUserConnectionHandler } from '../handlers/messages';
+import { onUserTextHandler } from '../handlers/messages';
 import { MessageType, OnCloseListener, OnErrorListener, OnMessageListener } from '../types';
-import { buildMessageBufferFromJson, convertTextToJson, getConnectionAddress, isValidMessageObject } from '../utils';
+import { buildMessageBufferFromJson, convertTextToJson, getConnectionAddress, isValidMessageObject, isValidTextMessageObject } from '../utils';
 
 export const onCloseListener: OnCloseListener = (webSocketServer, webSocket, code, reason, request) => {
     const connectionAddress = getConnectionAddress(request);
@@ -40,11 +40,18 @@ export const onMessageListener: OnMessageListener = (webSocketServer, webSocket,
         return;
     }
 
-    switch (convertedData.type) {
-        case MessageType.CONNECTION:
-            onUserConnectionHandler(webSocketServer, webSocket, request, convertedData);
-            break;
-        case MessageType.TEXT:
-            break;
+    if (convertedData.type === MessageType.TEXT) {
+        if (!isValidTextMessageObject(convertedData)) {
+            const errorMessage = buildMessageBufferFromJson({
+                error: 'Text message is not valid.',
+                timestamp: Date.now(),
+                type: MessageType.ERROR,
+            });
+    
+            webSocket.send(errorMessage);
+            return;
+        }
+
+        onUserTextHandler(webSocketServer, webSocket, request, convertedData);
     }
 };

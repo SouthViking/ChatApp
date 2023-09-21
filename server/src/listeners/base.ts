@@ -1,9 +1,10 @@
 // Definition of basic listeners.
 
+import { getConnectionAddress } from '../utils';
 import { OnCloseListener, OnErrorListener, OnMessageListener } from '../types';
 
 export const onCloseListener: OnCloseListener = (webSocketServer, webSocket, code, reason, request) => {
-    const connectionAddress = request.socket.remoteAddress ?? 'Address not available';
+    const connectionAddress = getConnectionAddress(request);
     console.log(`Client closed the connection. (${connectionAddress})`);
 };
 
@@ -12,7 +13,7 @@ export const onErrorListener: OnErrorListener = (webSocketServer, webSocket, err
 };
 
 export const onMessageListener: OnMessageListener = (webSocketServer, webSocket, data, isBinary, request) => {
-    const connectionAddress = request.socket.remoteAddress ?? 'Address not available';
+    const connectionAddress = getConnectionAddress(request);
     console.log(`Data received from client ${connectionAddress}: ${data} (${isBinary ? 'binary' : 'not binary'}).`);
 
     // TODO: Handle base message logic and separate the flow regarding the specific message.

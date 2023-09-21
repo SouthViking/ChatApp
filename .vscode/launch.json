@@ -8,7 +8,7 @@
             "type": "node",
             "request": "launch",
             "name": "Launch server",
-            "cwd": "${workspaceFolder}/server",
+            "cwd": "${workspaceFolder}",
             "runtimeExecutable": "npm",
             "runtimeArgs": ["start"]
         }

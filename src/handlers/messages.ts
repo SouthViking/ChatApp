@@ -7,6 +7,12 @@ export const onUserConnectionHandler: MessageHandler<ConnectionMessage> = (webSo
         type: MessageType.NOTIFICATION,
         text: `${data.username} has joined the chat room!`,
     }));
+
+    webSocket.send(buildJsonStringMessage({
+        success: true,
+        type: MessageType.CONNECTION,
+        message: `Welcome to the chat room, ${data.username}!`,
+    }));
 };
 
 export const onUserTextHandler: MessageHandler<TextMessage> = (webSocketServer, webSocket, request, data) => {

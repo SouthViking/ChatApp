@@ -1,6 +1,6 @@
 import WebSocket from 'ws';
 import { IncomingMessage } from 'http';
-import { BaseMessage, ConnectionMessage, MessageType, TextMessage } from '../types';
+import { UserConnectionMessage, UserTextMessage } from '../types';
 
 export const getConnectionAddress = (request: IncomingMessage, isProductionEnv: boolean = false): string => {  
     if (isProductionEnv) {
@@ -28,19 +28,7 @@ export const convertTextToJson = (text: string): Record<string, any> | null  => 
     }
 };
 
-export const isValidMessageObject = (object: Record<string, any>): object is BaseMessage => {
-    if (object.timestamp === undefined || typeof object.timestamp !== 'number') {
-        return false;
-    }
-
-    if (object.type === undefined || typeof object.type !== 'number' || !(object.type in MessageType)) {
-        return false;
-    }
-
-    return true;
-};
-
-export const isValidTextMessageObject = (object: Record<string, any>): object is TextMessage => {
+export const isValidTextMessageObject = (object: Record<string, any>): object is UserTextMessage => {
     if (object.username === undefined || typeof object.username !== 'string') {
         return false;
     }
@@ -55,11 +43,15 @@ export const isValidTextMessageObject = (object: Record<string, any>): object is
     return true;
 };
 
-export const isValidConnectionMessageObject = (object: Record<string, any>): object is ConnectionMessage => {
+export const isValidConnectionMessageObject = (object: Record<string, any>): object is UserConnectionMessage => {
     if (object.username === undefined || typeof object.username !== 'string') {
         return false;
     }
     
+    if (object.isConnect === undefined || typeof object.isConnect !== 'boolean') {
+        return false;
+    }
+
     return true;
 };
 

@@ -1,8 +1,8 @@
 // Definition of basic listeners.
 
 import { onUserConnectionHandler, onUserTextHandler } from '../handlers/messages';
-import { MessageType, OnCloseListener, OnErrorListener, OnMessageListener } from '../types';
-import { buildJsonStringMessage, convertTextToJson, getConnectionAddress, isValidConnectionMessageObject, isValidMessageObject, isValidTextMessageObject } from '../utils';
+import { UserMessageType, OnCloseListener, OnErrorListener, OnMessageListener, ResponseMessageType, UserConnectionMessage, UserTextMessage } from '../types';
+import { buildJsonStringMessage, convertTextToJson, getConnectionAddress, isValidConnectionMessageObject, isValidTextMessageObject } from '../utils';
 
 export const onCloseListener: OnCloseListener = (webSocketServer, webSocket, code, reason, request) => {
     const connectionAddress = getConnectionAddress(request);
@@ -18,52 +18,33 @@ export const onMessageListener: OnMessageListener = (webSocketServer, webSocket,
     console.log(`Data received from client ${connectionAddress}: ${data} (${isBinary ? 'binary' : 'not binary'}).`);
 
     const convertedData = convertTextToJson(data.toString());
-    if (convertedData == null) {
+    if (convertedData === null) {
         const errorMessage = buildJsonStringMessage({
-            error: 'Message must be a valid JSON object.',
             timestamp: Date.now(),
-            type: MessageType.ERROR,
+            type: ResponseMessageType.ERROR,
+            error: 'The message must be a valid JSON object.',
         });
 
         webSocket.send(errorMessage);
         return;
     }
 
-    if (!isValidMessageObject(convertedData)) {
-        webSocket.send(JSON.stringify({
-            error: 'Message format is not valid.',
-            timestamp: Date.now(),
-            type: MessageType.ERROR,
-        }));
-        return;
-    }
+    switch (convertedData.type) {
+        case UserMessageType.CONNECTION:
+            onUserConnectionHandler(webSocketServer, webSocket, request, convertedData as UserConnectionMessage);
+            break;
 
-    if (convertedData.type === MessageType.TEXT) {
-        if (!isValidTextMessageObject(convertedData)) {
-            const errorMessage = buildJsonStringMessage({
-                error: 'Text message is not valid.',
+        case UserMessageType.TEXT:
+            onUserTextHandler(webSocketServer, webSocket, request, convertedData as UserTextMessage);
+            break;
+
+        default:
+            webSocket.send(buildJsonStringMessage({
                 timestamp: Date.now(),
-                type: MessageType.ERROR,
-            });
-    
-            webSocket.send(errorMessage);
-            return;
-        }
+                type: ResponseMessageType.ERROR,
+                error: 'The provided operation is not valid.',
+            }));
 
-        onUserTextHandler(webSocketServer, webSocket, request, convertedData);
-    
-    } else if (convertedData.type === MessageType.CONNECTION) {
-        if (!isValidConnectionMessageObject(convertedData)) {
-            const errorMessage = buildJsonStringMessage({
-                error: 'Connection message is not valid.',
-                timestamp: Date.now(),
-                type: MessageType.ERROR,
-            });
-    
-            webSocket.send(errorMessage);
-            return;
-        }
-
-        onUserConnectionHandler(webSocketServer, webSocket, request, convertedData);
+            break;
     }
 };

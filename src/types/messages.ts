@@ -1,24 +1,25 @@
 
-export enum MessageType {
+export enum UserMessageType {
     CONNECTION,
     TEXT,
+}
+
+export enum ResponseMessageType {
+    CONNECTION,
+    USER_TEXT,
+    USER_CONNECTION,
     ERROR,
-    NOTIFICATION,
 }
 
-export interface BaseMessage {
-    type: MessageType;
-    timestamp: number;
-}
-
-export interface TextMessage extends BaseMessage {
-    type: MessageType.TEXT;
+export interface UserConnectionMessage {
     username: string;
+    isConnect: boolean;
+    type: UserMessageType.CONNECTION;
+}
+
+export interface UserTextMessage {
     text: string;
     sentAt: number;
-}
-
-export interface ConnectionMessage extends BaseMessage {
-    type: MessageType.CONNECTION;
     username: string;
+    type: UserMessageType.TEXT;
 }

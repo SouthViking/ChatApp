@@ -1,35 +1,35 @@
 import { storage } from '../storage';
+import { ResponseMessageType, UserConnectionMessage, UserTextMessage } from '../types';
 import { MessageHandler } from "../types/handlers";
-import { ConnectionMessage, MessageType, TextMessage } from "../types";
 import { buildJsonStringMessage, sendBroadcastMessage } from "../utils";
 
-export const onUserConnectionHandler: MessageHandler<ConnectionMessage> = (webSocketServer, webSocket, request, data) => {
+export const onUserConnectionHandler: MessageHandler<UserConnectionMessage> = (webSocketServer, webSocket, request, data) => {
     try {
-        storage.registerUser(data.username, webSocket);
+        data.isConnect ? storage.registerUser(data.username, webSocket) : storage.removeUser(data.username);
 
         sendBroadcastMessage(webSocketServer, webSocket, buildJsonStringMessage({
-            type: MessageType.NOTIFICATION,
-            text: `${data.username} has joined the chat room!`,
+            username: data.username,
+            isConnect: data.isConnect,
+            type: ResponseMessageType.USER_CONNECTION,
         }));
     
         webSocket.send(buildJsonStringMessage({
             success: true,
-            type: MessageType.CONNECTION,
-            message: `Welcome to the chat room, ${data.username}!`,
+            type: ResponseMessageType.CONNECTION,
         }));
 
     } catch (err) {
         webSocket.send(buildJsonStringMessage({
             success: false,
-            type: MessageType.CONNECTION,
+            type: ResponseMessageType.CONNECTION,
             message: `The username "${data.username}" has already been taken.`,
         }));
     }
 };
 
-export const onUserTextHandler: MessageHandler<TextMessage> = (webSocketServer, webSocket, request, data) => {
+export const onUserTextHandler: MessageHandler<UserTextMessage> = (webSocketServer, webSocket, request, data) => {
     sendBroadcastMessage(webSocketServer, webSocket, buildJsonStringMessage({
-        type: MessageType.TEXT,
+        type: ResponseMessageType.USER_TEXT,
         from: data.username,
         sentAt: data.sentAt,
         text: data.text,

@@ -30,12 +30,6 @@ export const onMessageListener: OnMessageListener = (webSocketServer, webSocket,
     }
 
     if (!isValidMessageObject(convertedData)) {
-        const errorMessage = buildJsonStringMessage({
-            error: 'Message format is not valid.',
-            timestamp: Date.now(),
-            type: MessageType.ERROR,
-        });
-
         webSocket.send(JSON.stringify({
             error: 'Message format is not valid.',
             timestamp: Date.now(),

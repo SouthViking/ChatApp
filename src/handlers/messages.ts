@@ -10,12 +10,16 @@ export const onUserConnectionHandler: MessageHandler<UserConnectionMessage> = (w
         sendBroadcastMessage(webSocketServer, webSocket, buildJsonStringMessage({
             username: data.username,
             isConnect: data.isConnect,
+            // Send the full list of current users to any other current user to update the list in the front.
+            userList: storage.getUserList(),
             type: ResponseMessageType.USER_CONNECTION,
         }));
     
         webSocket.send(buildJsonStringMessage({
             success: true,
             type: ResponseMessageType.CONNECTION,
+            // Send the list of current users but omit the current one, since this message goes directly to the user connecting.
+            userList: storage.getUserList(data.username),
         }));
 
     } catch (err) {

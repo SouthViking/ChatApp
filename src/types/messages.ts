@@ -1,3 +1,4 @@
+import { UserData } from './user';
 
 export enum UserMessageType {
     CONNECTION,
@@ -12,7 +13,7 @@ export enum ResponseMessageType {
 }
 
 export interface UserConnectionMessage {
-    username: string;
+    userData: UserData;
     isConnect: boolean;
     type: UserMessageType.CONNECTION;
 }

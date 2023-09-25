@@ -4,11 +4,13 @@ import { MessageHandler } from "../types/handlers";
 import { buildJsonStringMessage, sendBroadcastMessage } from "../utils";
 
 export const onUserConnectionHandler: MessageHandler<UserConnectionMessage> = (webSocketServer, webSocket, request, data) => {
+    const userData = data.userData;
+
     try {
-        data.isConnect ? storage.registerUser(data.username, webSocket) : storage.removeUser(data.username);
+        data.isConnect ? storage.registerUser(userData, webSocket) : storage.removeUser(userData.username);
 
         sendBroadcastMessage(webSocketServer, webSocket, buildJsonStringMessage({
-            username: data.username,
+            username: userData.username,
             isConnect: data.isConnect,
             // Send the full list of current users to any other current user to update the list in the front.
             userList: storage.getUserList(),
@@ -19,14 +21,14 @@ export const onUserConnectionHandler: MessageHandler<UserConnectionMessage> = (w
             success: true,
             type: ResponseMessageType.CONNECTION,
             // Send the list of current users but omit the current one, since this message goes directly to the user connecting.
-            userList: storage.getUserList(data.username),
+            userList: storage.getUserList(userData.username),
         }));
 
     } catch (err) {
         webSocket.send(buildJsonStringMessage({
             success: false,
             type: ResponseMessageType.CONNECTION,
-            message: `The username "${data.username}" has already been taken.`,
+            message: `The username "${userData.username}" has already been taken.`,
         }));
     }
 };

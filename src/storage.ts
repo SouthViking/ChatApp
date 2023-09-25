@@ -1,22 +1,19 @@
 import { WebSocket } from 'ws';
-
-export interface UserData {
-    username: string;
-}
+import { UserData } from './types';
 
 class Storage {
-    private users: Record<string, WebSocket>;
+    private users: Record<string, [WebSocket, UserData]>;
 
     constructor () {
         this.users = {};
     }
 
-    public registerUser(username: string, webSocket: WebSocket) {
-        if (this.users[username]) {
-            throw new Error(`User with username ${username} has already been registered.`);
+    public registerUser(userData: UserData, webSocket: WebSocket) {
+        if (this.users[userData.username]) {
+            throw new Error(`User with username ${userData.username} has already been registered.`);
         }
 
-        this.users[username] = webSocket;
+        this.users[userData.username] = [webSocket, userData];
     }
 
     public removeUser(username: string) {
@@ -27,7 +24,7 @@ class Storage {
 
     /** Gets the list of registered users excluding the current one if defined.  */
     public getUserList(excludeName?: string): UserData[] {
-        const userList = Object.keys(this.users).map(username => ({ username }));
+        const userList = Object.keys(this.users).map(username => ({ ...this.users[username][1] }));
 
         return excludeName ? userList.filter(userData => userData.username !== excludeName) : userList;
     }

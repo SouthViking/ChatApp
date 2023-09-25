@@ -34,6 +34,14 @@ class Storage {
         return excludeName ? userList.filter(userData => userData.username !== excludeName) : userList;
     }
 
+    public getUserData(username: string) {
+        if (this.users[username] === undefined) {
+            return null;
+        }
+
+        return this.users[username][1];
+    }
+
 }
 
 export const storage = new Storage();

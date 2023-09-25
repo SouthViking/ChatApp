@@ -20,6 +20,7 @@ export const onUserConnectionHandler: MessageHandler<UserConnectionMessage> = (w
         webSocket.send(buildJsonStringMessage({
             success: true,
             type: ResponseMessageType.CONNECTION,
+            userData: storage.getUserData(userData.username),
             // Send the list of current users but omit the current one, since this message goes directly to the user connecting.
             userList: storage.getUserList(userData.username),
         }));

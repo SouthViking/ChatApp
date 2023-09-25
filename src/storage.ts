@@ -1,5 +1,6 @@
 import { WebSocket } from 'ws';
 import { UserData } from './types';
+import { generateRandomHexColor } from './utils/misc';
 
 class Storage {
     private users: Record<string, [WebSocket, UserData]>;
@@ -11,6 +12,10 @@ class Storage {
     public registerUser(userData: UserData, webSocket: WebSocket) {
         if (this.users[userData.username]) {
             throw new Error(`User with username ${userData.username} has already been registered.`);
+        }
+
+        if (userData.avatar === undefined) {
+            userData.avatar = { hexColor: generateRandomHexColor() };
         }
 
         this.users[userData.username] = [webSocket, userData];

@@ -27,6 +27,21 @@ class Storage {
         }
     }
 
+    public removeUserByWebSocket(webSocket: WebSocket) {
+        const usernameToDelete = this.getUsernameFromWebSocket(webSocket);
+        usernameToDelete && this.removeUser(usernameToDelete);
+    }
+
+    public getUsernameFromWebSocket(webSocket: WebSocket) {
+        for (const username in this.users) {
+            if (this.users[username][0] === webSocket) {
+                return username;
+            }
+        }
+
+        return null;
+    }
+
     /** Gets the list of registered users excluding the current one if defined.  */
     public getUserList(excludeName?: string): UserData[] {
         const userList = Object.keys(this.users).map(username => ({ ...this.users[username][1] }));

@@ -1,5 +1,6 @@
 // Definition of basic listeners.
 
+import { onUserDisconnectHandler } from '../handlers/actions';
 import { onUserConnectionHandler, onUserTextHandler } from '../handlers/messages';
 import { UserMessageType, OnCloseListener, OnErrorListener, OnMessageListener, ResponseMessageType, UserConnectionMessage, UserTextMessage } from '../types';
 import { buildJsonStringMessage, convertTextToJson, getConnectionAddress, isValidConnectionMessageObject, isValidTextMessageObject } from '../utils';
@@ -7,6 +8,8 @@ import { buildJsonStringMessage, convertTextToJson, getConnectionAddress, isVali
 export const onCloseListener: OnCloseListener = (webSocketServer, webSocket, code, reason, request) => {
     const connectionAddress = getConnectionAddress(request);
     console.log(`Client closed the connection. (${connectionAddress})`);
+
+    onUserDisconnectHandler(webSocketServer, webSocket, request, { code, reason });
 };
 
 export const onErrorListener: OnErrorListener = (webSocketServer, webSocket, error, request) => {
